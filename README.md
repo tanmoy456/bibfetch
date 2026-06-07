@@ -31,6 +31,6 @@ A Chrome extension that fetches complete BibTeX entries (with DOI, pages, volume
 
 | Source | Coverage | Pages |
 |--------|---------|-------|
-| Crossref | 150M+ papers | Good |
+| Crossref | 200M+ papers | Good |
 | Semantic Scholar | CS/bio heavy | Good |
-| OpenAlex | OA-focused | first–last page |
+| OpenAlex | 400M+ papers | first–last page |
