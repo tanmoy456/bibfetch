@@ -86,10 +86,12 @@ function escapeAttr(str) {
 // ─── Render all source cards ───────────────────────────────────────────────────
 
 function renderResults(data) {
+  // Semantic Scholar comes up empty most of the time — show it last
+  // so the cards that usually have data aren't pushed down by it.
   resultsDiv.innerHTML =
     renderSourceCard("crossref", data.crossref) +
-    renderSourceCard("semantic", data.semantic) +
-    renderSourceCard("openalex", data.openalex);
+    renderSourceCard("openalex", data.openalex) +
+    renderSourceCard("semantic", data.semantic);
 
   // Attach copy button listeners
   resultsDiv.querySelectorAll(".copy-btn").forEach(btn => {
@@ -163,11 +165,29 @@ searchInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") doSearch();
 });
 
-// ─── Pre-fill from Scholar page if open ───────────────────────────────────────
+// ─── Auto-search using a title copied via the 📋 icon on Scholar ──────────────
+// content_script.js stashes { pendingTitle, pendingTitleAt } in chrome.storage.local
+// when the user clicks the copy icon next to a paper title. If it's fresh,
+// pre-fill the search box and fetch immediately — no manual paste needed.
 
-chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  const tab = tabs[0];
-  if (tab && tab.url && tab.url.includes("scholar.google")) {
-    setStatus("Active on Google Scholar — enter a title to search.", "success");
+const PENDING_TITLE_TTL_MS = 60_000;
+
+chrome.storage.local.get(["pendingTitle", "pendingTitleAt"], (stored) => {
+  const isFresh = stored.pendingTitle && stored.pendingTitleAt
+    && (Date.now() - stored.pendingTitleAt) < PENDING_TITLE_TTL_MS;
+
+  if (isFresh) {
+    chrome.storage.local.remove(["pendingTitle", "pendingTitleAt"]);
+    searchInput.value = stored.pendingTitle;
+    doSearch();
+    return;
   }
+
+  // Otherwise just hint that we're on a Scholar page
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (tab && tab.url && tab.url.includes("scholar.google")) {
+      setStatus("Active on Google Scholar — enter a title to search.", "success");
+    }
+  });
 });

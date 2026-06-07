@@ -133,6 +133,38 @@ function copyToClipboard(text) {
   });
 }
 
+// ─── Title-copy icon: copy title + stash it for BibFetch's popup ──────────────
+// Clicking it copies the title to the clipboard AND saves it to
+// chrome.storage.local. When the user then opens the BibFetch popup,
+// popup.js picks it up, pre-fills the search box and fetches automatically.
+
+function makeTitleCopyIcon(title) {
+  const icon = document.createElement("span");
+  icon.innerText = "📋";
+  icon.title = "Copy title & auto-search in BibFetch";
+  icon.style.cssText = `
+    cursor: pointer;
+    font-size: 13px;
+    margin-left: 8px;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+    vertical-align: middle;
+    user-select: none;
+  `;
+  icon.onmouseover = () => { icon.style.opacity = "1"; };
+  icon.onmouseout  = () => { icon.style.opacity = "0.5"; };
+
+  icon.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await copyToClipboard(title);
+    chrome.storage.local.set({ pendingTitle: title, pendingTitleAt: Date.now() });
+    showToast("📋 Title copied — open BibFetch to auto-search", "#1a73e8", 3000);
+  });
+
+  return icon;
+}
+
 // ─── Handle button click ───────────────────────────────────────────────────────
 
 async function handleCiteClick(btn, resultEl) {
@@ -194,6 +226,13 @@ function injectCiteButtons() {
 
   results.forEach((resultEl) => {
     resultEl.setAttribute("data-doi-btn", "true");
+
+    // Title copy icon — copy + auto-search in one click
+    const titleEl = resultEl.querySelector("h3 a, .gs_rt a");
+    if (titleEl) {
+      const { title } = extractMetaFromResult(resultEl);
+      if (title) titleEl.parentNode.insertBefore(makeTitleCopyIcon(title), titleEl.nextSibling);
+    }
 
     // Action bar where Cited by / Related articles links sit
     const actionBar = resultEl.querySelector(".gs_fl");
@@ -271,6 +310,13 @@ function injectDetailPageButton() {
   // Wait for title to appear
   const titleEl = document.querySelector("#gsc_oci_title");
   if (!titleEl) return;
+
+  // Title copy icon — copy + auto-search in one click
+  const { title: detailTitle } = extractMetaFromDetailPage();
+  if (detailTitle) {
+    const titleLinkEl = document.querySelector("#gsc_oci_title a, .gsc_oci_title_link") || titleEl;
+    titleLinkEl.parentNode.insertBefore(makeTitleCopyIcon(detailTitle), titleLinkEl.nextSibling);
+  }
 
   const btn = document.createElement("button");
   btn.id = "doi-injector-detail-btn";
