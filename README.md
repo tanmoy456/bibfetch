@@ -22,8 +22,9 @@ A Chrome extension that fetches complete BibTeX entries (with DOI, pages, volume
 **Quick copy** — on any Scholar page, click the blue `📋 BibTeX` button on a result → copied to clipboard instantly.
 
 **Compare & search** — click the BibFetch toolbar icon to open the popup:
-- Paste any paper title in the search box → hit Fetch
-- See results from Crossref, Semantic Scholar, OpenAlex side by side
+- If you're on a Scholar page, the search box is pre-filled automatically with that paper's title (the cited paper on a detail page, or the first result on a search page) — just hit **Fetch**
+- Otherwise, paste any paper title in the search box → hit Fetch
+- See results from Crossref, OpenAlex, Semantic Scholar side by side
 - Click **Copy BibTeX** on whichever source has the most complete data
 
 ## Sources
