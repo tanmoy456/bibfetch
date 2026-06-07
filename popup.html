@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 480px;
+      min-height: 200px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      background: #0f1117;
+      color: #e2e8f0;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: 0.03em;
+    }
+    .header-sub {
+      font-size: 11px;
+      color: #64748b;
+      margin-left: auto;
+    }
+
+    /* ── Search bar ── */
+    .search-area {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .search-row {
+      display: flex;
+      gap: 8px;
+    }
+    #searchInput {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 12px;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #searchInput:focus { border-color: #60a5fa; }
+    #searchInput::placeholder { color: #475569; }
+
+    #searchBtn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    #searchBtn:hover { background: #1557b0; }
+    #searchBtn:disabled { background: #334155; color: #64748b; cursor: default; }
+
+    /* ── Status bar ── */
+    #statusBar {
+      padding: 6px 16px;
+      font-size: 11px;
+      color: #64748b;
+      min-height: 24px;
+      border-bottom: 1px solid #1e293b;
+    }
+    #statusBar.loading { color: #60a5fa; }
+    #statusBar.error   { color: #f87171; }
+    #statusBar.success { color: #34d399; }
+
+    /* ── Results area ── */
+    #results {
+      max-height: 480px;
+      overflow-y: auto;
+    }
+    #results::-webkit-scrollbar { width: 5px; }
+    #results::-webkit-scrollbar-track { background: #0f1117; }
+    #results::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    /* ── Source card ── */
+    .source-card {
+      border-bottom: 1px solid #1e293b;
+      padding: 12px 16px;
+    }
+    .source-card:last-child { border-bottom: none; }
+
+    .source-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .source-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .badge-crossref  { background: #1e3a5f; color: #60a5fa; }
+    .badge-semantic  { background: #1a3a2a; color: #34d399; }
+    .badge-openalex  { background: #3a1a3a; color: #c084fc; }
+
+    .source-score {
+      font-size: 10px;
+      color: #475569;
+    }
+    .score-high { color: #34d399; }
+    .score-mid  { color: #fbbf24; }
+    .score-low  { color: #f87171; }
+
+    /* ── Metadata pills ── */
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .meta-pill {
+      background: #1e293b;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    .meta-pill span { color: #e2e8f0; font-weight: 600; }
+    .meta-pill.missing { color: #475569; font-style: italic; }
+
+    /* ── BibTeX block ── */
+    .bibtex-block {
+      background: #0a0e1a;
+      border: 1px solid #1e293b;
+      border-radius: 5px;
+      padding: 8px 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 120px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .bibtex-block::-webkit-scrollbar { width: 4px; }
+    .bibtex-block::-webkit-scrollbar-thumb { background: #334155; }
+
+    /* ── Copy button ── */
+    .copy-btn {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { background: #1e293b; color: #e2e8f0; border-color: #60a5fa; }
+    .copy-btn.copied { background: #14532d; color: #34d399; border-color: #34d399; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 32px 16px;
+      text-align: center;
+      color: #475569;
+    }
+    .empty-state .icon { font-size: 28px; margin-bottom: 8px; }
+    .empty-state p { font-size: 12px; line-height: 1.6; }
+
+    /* ── Error card ── */
+    .source-card.not-found {
+      opacity: 0.5;
+    }
+    .not-found-label {
+      font-size: 11px;
+      color: #475569;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span>📚</span>
+    <span class="header-title">BibFetch</span>
+    <span class="header-sub">Multi-source BibTeX</span>
+  </div>
+
+  <div class="search-area">
+    <div class="search-row">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Paste paper title to fetch BibTeX…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button id="searchBtn">Fetch</button>
+    </div>
+  </div>
+
+  <div id="statusBar">Ready — enter a title or click 📋 BibTeX on Scholar</div>
+
+  <div id="results">
+    <div class="empty-state">
+      <div class="icon">🔬</div>
+      <p>Search by title above, or use the<br><strong>📋 BibTeX</strong> button on any Scholar result.</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

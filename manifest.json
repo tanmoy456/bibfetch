@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "BibFetch",
+  "version": "0.1.0",
+  "description": "Fetch complete BibTeX with DOI from Crossref, Semantic Scholar & OpenAlex — directly from Google Scholar.",
+
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "https://scholar.google.com/*",
+    "https://scholar.googleusercontent.com/*",
+    "https://api.crossref.org/*",
+    "https://api.semanticscholar.org/*",
+    "https://api.openalex.org/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://scholar.google.com/*",
+        "https://scholar.googleusercontent.com/*"
+      ],
+      "js": ["content_script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "BibFetch",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}
