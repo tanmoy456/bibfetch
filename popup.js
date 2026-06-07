@@ -165,28 +165,21 @@ searchInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") doSearch();
 });
 
-// ─── Auto-search using a title copied via the 📋 icon on Scholar ──────────────
-// content_script.js stashes { pendingTitle, pendingTitleAt } in chrome.storage.local
-// when the user clicks the copy icon next to a paper title. If it's fresh,
-// pre-fill the search box and fetch immediately — no manual paste needed.
+// ─── Pre-fill from the Scholar page that's currently open ─────────────────────
+// Ask the content script for "the title on this page" — the cited paper on a
+// detail page, or the first result on a search-results page. Pre-fill the
+// search box with it (user still clicks Fetch themselves).
 
-const PENDING_TITLE_TTL_MS = 60_000;
+chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  const tab = tabs[0];
+  if (!tab || !tab.url || !tab.url.includes("scholar.google")) return;
 
-chrome.storage.local.get(["pendingTitle", "pendingTitleAt"], (stored) => {
-  const isFresh = stored.pendingTitle && stored.pendingTitleAt
-    && (Date.now() - stored.pendingTitleAt) < PENDING_TITLE_TTL_MS;
-
-  if (isFresh) {
-    chrome.storage.local.remove(["pendingTitle", "pendingTitleAt"]);
-    searchInput.value = stored.pendingTitle;
-    doSearch();
-    return;
-  }
-
-  // Otherwise just hint that we're on a Scholar page
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tab = tabs[0];
-    if (tab && tab.url && tab.url.includes("scholar.google")) {
+  chrome.tabs.sendMessage(tab.id, { type: "GET_PAGE_TITLE" }, (response) => {
+    if (chrome.runtime.lastError) return; // content script not present on this page
+    if (response && response.title) {
+      searchInput.value = response.title;
+      setStatus("Title pre-filled from Scholar — click Fetch to search.", "success");
+    } else {
       setStatus("Active on Google Scholar — enter a title to search.", "success");
     }
   });
